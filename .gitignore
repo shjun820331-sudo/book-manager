@@ -6,9 +6,11 @@
 # Python
 __pycache__/
 *.pyc
+.venv/
 
 # Vercel
 .vercel/
 
 # OS
 .DS_Store
+.vercel
