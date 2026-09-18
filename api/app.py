@@ -1,8 +1,14 @@
 import json
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from openai import OpenAI
+
+# vercel dev가 .env.local을 함수 프로세스에 자동으로 주입하지 않는 경우가 있어
+# 직접 로드한다. 배포 환경에서는 .env.local 파일이 없으므로 아무 영향 없음
+# (실제 배포 환경변수는 Vercel 대시보드에서 os.environ으로 주입됨).
+load_dotenv(".env.local")
 
 app = Flask(__name__)
 
