@@ -1,0 +1,243 @@
+/* ===== 공통 변수 ===== */
+:root {
+  --color-primary: #3b5bdb;
+  --color-primary-dark: #2f4ab8;
+  --color-secondary: #f1f3f9;
+  --color-text: #212529;
+  --color-text-muted: #6b7280;
+  --color-border: #e2e5ee;
+  --color-bg: #ffffff;
+  --color-error-bg: #fdecea;
+  --color-error-text: #b3261e;
+  --radius: 10px;
+  --max-width: 960px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic",
+    sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  padding-left: 1.2rem;
+}
+
+/* ===== 헤더 / 네비게이션 ===== */
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-bg);
+  z-index: 10;
+}
+
+.nav-wrap {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.main-nav {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  padding: 0.3rem 0.1rem;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link.active,
+.nav-link:hover {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* ===== 레이아웃 ===== */
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+section {
+  margin-bottom: 2.5rem;
+}
+
+footer {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+/* ===== 히어로 ===== */
+.hero {
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+
+.hero h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.hero p {
+  color: var(--color-text-muted);
+  max-width: 560px;
+  margin: 0 auto 1.5rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.how-it-works {
+  background: var(--color-secondary);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.5rem 1.5rem 2.2rem;
+}
+
+/* ===== 버튼 ===== */
+.btn {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background: #fff;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== 폼 ===== */
+.form-card {
+  background: var(--color-secondary);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  font-size: 0.92rem;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* ===== 결과 / 메시지 ===== */
+.result-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.result-card h3 {
+  margin-top: 0;
+}
+
+.message {
+  min-height: 1.4rem;
+  margin-top: 0.8rem;
+  font-size: 0.92rem;
+}
+
+.message:not(:empty) {
+  padding: 0.6rem 0.9rem;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-radius: 8px;
+}
+
+.result-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* ===== 반응형: 태블릿 이상 ===== */
+@media (min-width: 640px) {
+  .hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .result-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ===== 반응형: 데스크톱 ===== */
+@media (min-width: 900px) {
+  main {
+    padding-top: 3rem;
+  }
+}

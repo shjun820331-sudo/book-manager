@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>토론 주제 추천 - 북토크 나침반</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a href="index.html" class="logo">북토크 나침반</a>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">홈</a>
+        <a href="book-info.html" class="nav-link">도서 정보</a>
+        <a href="discussion.html" class="nav-link">토론 주제 추천</a>
+        <a href="guide.html" class="nav-link">이용 안내</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h1>토론 주제 추천</h1>
+      <p>책 제목과 참여자 연령대, 토론 목적을 선택하면 AI가 이야깃거리와 토론 주제를 추천해드려요.</p>
+
+      <form id="discussion-form" class="form-card">
+        <div class="form-group">
+          <label for="title-input">책 제목</label>
+          <input
+            type="text"
+            id="title-input"
+            name="title"
+            placeholder="예) 82년생 김지영"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="age-select">참여자 연령대</label>
+          <select id="age-select" name="age_group">
+            <option value="">선택해주세요</option>
+            <option value="초등학생">초등학생</option>
+            <option value="중·고등학생">중·고등학생</option>
+            <option value="대학생·성인">대학생·성인</option>
+            <option value="시니어">시니어</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="purpose-select">토론 목적</label>
+          <select id="purpose-select" name="purpose">
+            <option value="">선택해주세요</option>
+            <option value="감상 나누기">감상 나누기</option>
+            <option value="비판적 사고 훈련">비판적 사고 훈련</option>
+            <option value="글쓰기 연계">글쓰기 연계</option>
+            <option value="교육과정 연계">교육과정 연계</option>
+          </select>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary">토론 주제 추천받기</button>
+      </form>
+
+      <div id="message" class="message" role="alert"></div>
+
+      <div id="result" class="result-card" hidden>
+        <div class="result-columns">
+          <div>
+            <h3>이야깃거리</h3>
+            <ul id="talking-points"></ul>
+          </div>
+          <div>
+            <h3>토론 주제</h3>
+            <ul id="discussion-topics"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>북토크 나침반 &middot; AI 기반 독서모임 준비 도우미</footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/discussion.js"></script>
+</body>
+</html>

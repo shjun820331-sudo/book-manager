@@ -1,0 +1,14 @@
+# 환경 변수 (API 키 등 민감정보 - 절대 커밋하지 않음)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.pyc
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
