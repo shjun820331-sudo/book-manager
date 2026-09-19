@@ -8,6 +8,8 @@
 - 과제명: AI 웹서비스 제작 및 배포 미션 (바닐라 HTML/CSS/JS + Vercel
   Serverless Functions(Python) + AI API)
 - 요구사항 상세 분석: [`docs/01_과제분석및레포트.md`](docs/01_과제분석및레포트.md)
+- 학습 정리(내 과제로 설명하기, 발표·질의응답 대비):
+  [`docs/04_학습정리_설명가이드.md`](docs/04_학습정리_설명가이드.md)
 - 초보자용 핵심 개념 가이드: [`docs/02_초보자가이드.md`](docs/02_초보자가이드.md)
 
 ## 현재 범위 방침 (중요)
@@ -42,16 +44,23 @@
       Vercel 로그인, Python venv(`.venv/`), 의존성 설치까지 완료
 - [x] 로컬 실행(`vercel dev`) 성공 확인 (2026-09-18) — 서버 기동, 페이지
       로딩, `/api/book-info` 요청이 OpenAI까지 정상적으로 도달하는 것 확인
-- [ ] **AI 응답 실제 확인 — 막힘**: OpenAI에서 `429 Too Many Requests`
-      응답. 코드/설정 문제 아님 — **OpenAI 계정에 결제수단(크레딧)이 등록
-      안 되어 있어서 나는 오류로 추정됨.** platform.openai.com → Settings →
-      Billing 에서 결제수단 등록 후 재시도 필요 (다음 세션 최우선 작업)
-- [ ] 브라우저에서 실제 화면 확인 (네비게이션/입력폼/결과표시 육안 테스트)
-- [ ] 반응형 육안 확인 (최소 2개 화면 크기 — 아직 실제로 안 함)
+- [x] AI 응답 실제 확인 (2026-09-19) — OpenAI 크레딧 문제로 **Gemini API로
+      교체**. `/api/book-info`, `/api/discussion-topics` 모두 200 응답과
+      정상 JSON 확인 (Flask test client 기준, 브라우저 확인은 아직)
+- [x] `vercel dev` 로컬 서버로 전체 흐름 검증 (2026-09-19) — 페이지 4개/CSS/JS
+      200, 두 API 정상, 빈입력·필수값누락 400, 없는 책 "찾을 수 없습니다" 응답,
+      `.env.local`·`api/app.py` 미노출(404) 확인 (curl 기준)
+- [x] 브라우저 화면 확인 (2026-09-19) — 헤드리스 Chrome(CDP)으로 375px 모바일
+      에뮬레이션 E2E 13/13 통과: 4페이지 가로스크롤 없음, 네비 이동, 빈입력/
+      미선택/API오류 메시지, 도서조회→결과→토론페이지 이동(제목 자동채움)→
+      추천 결과 표시. (Flask 직접 실행 `flask --app api.app run` 기준)
+- [x] 반응형 확인 (2026-09-19) — 375px / 1280px 스크린샷으로 레이아웃 확인
 - [ ] **← 여기까지가 이번 작업 범위. 아래부터는 "배포" 단계 (다음 세션에서 진행)**
-- [ ] Vercel 대시보드에서 환경 변수(`OPENAI_API_KEY`) 프로덕션에 등록
-- [ ] Vercel 배포 (`vercel --prod` 또는 GitHub 연동 자동배포)
-- [ ] 배포 후 전체 기능(네비게이션/반응형/AI 기능) 동작 검증
+- [x] (2026-09-19) Vercel 환경 변수(`GEMINI_API_KEY`, Production, `vercel env add`로 등록) 프로덕션에 등록
+- [x] Vercel 배포 (2026-09-19, `vercel --prod`) — **https://book-olive-iota.vercel.app**
+      (GitHub 연동 자동배포는 아직 안 함 — `vercel git connect`)
+- [x] 배포 후 전체 기능 동작 검증 (2026-09-19) — 프로덕션 URL에서 375px 모바일
+      E2E 13/13 통과(네비/반응형/AI 2종/실패처리), `.env.local`·`api/app.py` 404
 - [ ] README.md 작성 (소개/기술스택/배포URL/실행법/환경변수)
 - [ ] 스크린샷 및 AI 코딩 도구 사용 증빙 준비
 - [ ] 최종 제출 패키지 정리
@@ -85,19 +94,44 @@
   교훈: 앞으로 `.env.local` 내용을 확인할 때는 절대 `cat`으로 전체 출력하지
   말고, 길이/접두사만 확인하는 방식(awk substr 등)을 사용할 것.
 
+- 2026-09-19: **AI API를 OpenAI → Google Gemini로 교체.** 이유: OpenAI가
+  `insufficient_quota`(크레딧 0)로 429를 반환했고 무료 프로젝트라 결제하지
+  않기로 함. Gemini의 OpenAI 호환 엔드포인트
+  (`https://generativelanguage.googleapis.com/v1beta/openai/`)를 써서
+  `openai` SDK는 그대로 두고 base_url/키 이름/모델만 변경. 환경변수는
+  `GEMINI_API_KEY`(필수, 이름 대소문자 주의), `GEMINI_MODEL`(선택). 기본 모델은
+  `gemini-3.6-flash` (`gemini-2.5-flash`는 신규 사용자 제공 종료로 404).
+  키 발급: https://aistudio.google.com/apikey . 옛 OpenAI 키는 `.env.local`에서
+  제거됨(어제 노출 사고 건도 해소, 단 OpenAI 대시보드에서 폐기했는지는 본인 확인).
+
+- 2026-09-19: **Flask 앱에 화면 서빙 라우트 추가.** entrypoint가 Flask라
+  `vercel dev`에서는 모든 요청이 Flask로 들어와 HTML/CSS/JS가 전부 404였음.
+  `api/app.py`에 `/`, `/<page>.html`(허용 4개), `/css|js|images/...` 라우트를
+  추가. 루트 전체 공개 시 `.env.local`이 노출되므로 허용 목록 방식 사용.
+  **배포 단계에서 확인 필요**: Vercel 프로덕션에서도 HTML/CSS/JS가 함수 번들에
+  포함돼 정상 서빙되는지(안 되면 `public/` 폴더 이동 또는 includeFiles 검토).
+
+- 2026-09-19: **배포 시 발견·해결한 문제 2개.** (1) 배포 서버가 `No module named
+  'dotenv'`로 전부 500 → Vercel은 `requirements.txt`가 아니라 `pyproject.toml`의
+  `dependencies`로 설치함. `pyproject.toml`에 flask/openai/python-dotenv 추가
+  (requirements.txt는 로컬용으로 유지, 두 파일 맞출 것). (2) Gemini 무료 등급
+  `gemini-3.6-flash`는 **하루 20회** 한도 → 429. 기본 모델을
+  `gemini-3.5-flash-lite`로 변경(25회 연속 성공 확인, 응답 ~3초). 그래도 무료
+  등급이라 간헐적 503(과부하)/429가 날 수 있어 오류 로그(`_ai_failure`)와 친절한
+  메시지 추가. 로그 확인: `vercel logs --environment production --since 15m -j`.
+
 ## 다음에 할 일 (Next Steps) — 최우선 순서
 
-1. **(최우선) OpenAI 계정에 결제수단 등록** — platform.openai.com →
-   Settings → Billing. 등록 안 하면 API 호출이 계속 429 오류.
-2. `.env.local`의 키가 재발급된 새 키로 되어 있는지 확인 (보안 사고 기록
-   참고 — 기존 키는 노출되어 폐기했어야 함)
-3. `vercel dev`로 다시 실행해서 실제 브라우저(`http://localhost:3000`)로
-   도서 정보 조회 → 토론 주제 추천까지 전체 흐름 테스트
-4. 브라우저 개발자도구로 최소 2개 화면 크기(예: 375px 모바일, 1280px
+1. Flask 직접 실행(위 "알려진 이슈" 참고)으로 실제 브라우저(`http://localhost:3000`)에서 도서 정보
+   조회 → 토론 주제 추천까지 전체 흐름 테스트
+2. 브라우저 개발자도구로 최소 2개 화면 크기(예: 375px 모바일, 1280px
    데스크톱)에서 레이아웃 직접 확인
-5. AI 응답 품질 확인 — 필요하면 `api/app.py`의 `SYSTEM_PROMPT` 다듬기
-6. (이번 작업 범위 밖, 그다음 세션) Vercel 배포, 환경 변수 등록, 배포 후 검증
-7. (배포 후) README.md 작성, 스크린샷/AI 코딩 도구 사용 증빙 준비
+3. AI 응답 품질 확인 — 필요하면 `api/app.py`의 프롬프트 다듬기
+4. 정리: 잘못된 옛 파일 `api/book-info.py`(untracked)와 오타 파일
+   `.env.local.` 삭제
+5. (이번 작업 범위 밖, 그다음 세션) Vercel 배포, `GEMINI_API_KEY` 환경 변수
+   등록, 배포 후 검증
+6. (배포 후) README.md 작성, 스크린샷/AI 코딩 도구 사용 증빙 준비
 
 ## 다른 컴퓨터에서 이어서 작업하는 법
 
@@ -121,7 +155,7 @@
    source .venv/bin/activate
    ```
 8. **환경 변수 설정**: `cp .env.local.example .env.local` 후, 편집기로
-   `.env.local`을 열어 `OPENAI_API_KEY=`에 실제 키 입력
+   `.env.local`을 열어 `GEMINI_API_KEY=`에 실제 키 입력
    (**절대 이 키를 Claude와의 대화창에 붙여넣지 말 것** — 직접 파일
    편집기나 `read -s`를 쓴 터미널 명령으로만 입력)
 9. **로컬 테스트**: `vercel dev` (최초 실행 시 프로젝트 연결 질문에는
@@ -146,6 +180,20 @@
   `api/app.py`에서 `python-dotenv`로 `load_dotenv(".env.local")` 직접
   호출하도록 코드에 추가해둠 (배포 환경에는 영향 없음).
 
+- `vercel dev`가 `ImportError: cannot import name 'UTC' from 'datetime'`로 죽음 →
+  venv를 안 잡고 macOS 기본 Python 3.9를 써서 생기는 오류(Vercel 런타임은 3.11+
+  필요). **반드시 `source .venv/bin/activate` 한 셸에서 `vercel dev` 실행.**
+
+- **알려진 이슈 (원인 확인, 우회함)**: `vercel dev`(CLI 59.23.1, vercel_runtime
+  0.23.0)는 브라우저가 페이지를 열 때 CSS/JS를 **동시에 요청(동시 연결 2개 이상)**
+  하면 Python 함수 프로세스가 로그 없이 죽고 이후 계속 500
+  (FUNCTION_INVOCATION_FAILED)을 냄. 일반 Chrome에서도 재현. Python 서버만
+  직접 띄우면 정상이라 우리 코드 문제가 아니라 `vercel dev` 도구 문제로 판단.
+  **로컬 확인은 Flask를 직접 실행**한다 (같은 `api/app.py`, 화면+API 모두 제공):
+  `source .venv/bin/activate && flask --app api.app run --port 3000`
+  → http://localhost:3000 . 배포(Vercel)에는 영향 없음(배포 시 재확인 필요).
+  참고: 포트 6000은 Chrome이 막는 포트라 쓰지 말 것.
+
 ## 진행 로그
 
 ### 2026-09-18
@@ -168,3 +216,22 @@
 - **아직 안 한 것**: 결제수단 등록 후 AI 응답 재확인, 브라우저 실제
   화면/반응형 확인, Vercel 배포, README 작성, 증빙자료 준비
 - 방침: 이번 작업은 배포 전 단계까지만 진행하기로 함
+
+### 2026-09-19
+- OpenAI 크레딧 없음(429 `insufficient_quota`) 확인 → 결제 대신 Gemini API로
+  교체 (Decision Log 참고). `api/app.py`, `.env.local.example` 수정.
+- 환경변수 이름이 소문자(`gemini_API_KEY`)로 저장돼 못 읽던 문제와, 기본
+  모델 `gemini-2.5-flash` 404 문제를 해결. 두 엔드포인트 응답 확인.
+- `vercel dev` 실행 중 (1) 시스템 Python 3.9 문제, (2) 화면 파일 404 문제를
+  해결. 잘못된 파일 `api/book-info.py`, `.env.local.` 삭제.
+- `vercel dev` 크래시 원인 조사: 동시 연결 2개로 재현(경로 무관). 로컬 확인은
+  Flask 직접 실행으로 대체.
+- 화면 확인 완료(위 체크리스트). 한글 줄바꿈이 단어 중간에서 끊기는 점은
+  `word-break: keep-all` 적용 검토(선택 사항).
+- **아직 안 한 것**: 사용자 브라우저에서 육안 확인, 커밋, Vercel 배포,
+  README, 증빙자료
+- Vercel 배포 완료: https://book-olive-iota.vercel.app (프로덕션 alias).
+  환경 변수 등록, 의존성(pyproject.toml) 수정, 모델 변경(gemini-3.5-flash-lite),
+  오류 로깅 추가 후 재배포. 프로덕션 E2E 13/13 통과.
+- **아직 안 한 것**: 커밋/푸시(현재 변경분 전부 미커밋), README.md, 스크린샷/
+  AI 코딩 도구 사용 증빙, 최종 제출 패키지, (선택) GitHub 연동 자동배포
