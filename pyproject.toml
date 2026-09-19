@@ -2,6 +2,13 @@
 name = "book-talk-compass"
 version = "0.1.0"
 requires-python = ">=3.12"
+# Vercel은 requirements.txt가 아니라 이 목록으로 패키지를 설치한다.
+# (requirements.txt는 로컬 pip install 용으로 함께 유지 — 두 파일 내용을 맞출 것)
+dependencies = [
+    "flask>=3.0.0,<4.0.0",
+    "openai>=1.40.0,<2.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+]
 
 [tool.vercel]
 entrypoint = "api.app:app"

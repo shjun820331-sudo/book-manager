@@ -1,8 +1,9 @@
 import json
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, abort, jsonify, request, send_from_directory
 from openai import OpenAI
 
 # vercel dev가 .env.local을 함수 프로세스에 자동으로 주입하지 않는 경우가 있어
@@ -11,6 +12,30 @@ from openai import OpenAI
 load_dotenv(".env.local")
 
 app = Flask(__name__)
+
+# entrypoint가 Flask 앱이라 vercel dev에서는 모든 요청이 이 앱으로 들어온다.
+# 그래서 화면(HTML/CSS/JS/이미지)도 여기서 내준다. 루트 전체를 공개하면
+# .env.local 같은 파일이 노출되므로 허용 목록(페이지 4개 + 정적 폴더 3개)만 연다.
+ROOT_DIR = Path(__file__).resolve().parent.parent
+PAGES = {"index", "book-info", "discussion", "guide"}
+
+
+@app.route("/")
+def home():
+    return send_from_directory(ROOT_DIR, "index.html")
+
+
+@app.route("/<page>.html")
+def page(page):
+    if page not in PAGES:
+        abort(404)
+    return send_from_directory(ROOT_DIR, f"{page}.html")
+
+
+@app.route("/<any(css,js,images):folder>/<path:filename>")
+def static_files(folder, filename):
+    return send_from_directory(ROOT_DIR / folder, filename)
+
 
 BOOK_INFO_SYSTEM_PROMPT = """너는 독서모임 준비를 돕는 도서 정보 도우미다.
 사용자가 알려준 책 제목을 보고, 다음 JSON 형식으로만 답해라. 다른 설명은 절대 덧붙이지 마라.
@@ -35,15 +60,32 @@ talking_points와 discussion_topics는 각각 5~7개, 한국어로 작성하고,
 눈높이와 난이도로 작성해라."""
 
 
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+
 def _client():
-    api_key = os.environ.get("OPENAI_API_KEY")
+    # Gemini의 OpenAI 호환 엔드포인트를 쓰므로 openai SDK를 그대로 사용한다.
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return None
-    return OpenAI(api_key=api_key, timeout=15.0)
+    return OpenAI(api_key=api_key, base_url=GEMINI_BASE_URL, timeout=15.0)
 
 
 def _model():
-    return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    # flash-lite 계열은 무료 등급 일일 한도가 넉넉하고 응답이 빠르다.
+    # (gemini-3.6-flash 무료 등급은 하루 20회라 금방 소진됨)
+    return os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
+
+def _ai_failure(exc, default_message):
+    # 원인을 Vercel/터미널 로그에 남기고, 사용자에게는 알아듣기 쉬운 메시지를 준다.
+    app.logger.error("AI 호출 실패: %s %s", type(exc).__name__, str(exc)[:300])
+    if getattr(exc, "status_code", None) == 429:
+        return (
+            jsonify({"error": "요청이 많아 잠시 쉬고 있어요. 1분 뒤에 다시 시도해주세요."}),
+            429,
+        )
+    return jsonify({"error": default_message}), 502
 
 
 @app.route("/api/book-info", methods=["POST"])
@@ -67,8 +109,8 @@ def book_info():
             ],
         )
         result = json.loads(completion.choices[0].message.content)
-    except Exception:
-        return jsonify({"error": "정보를 가져오지 못했어요. 잠시 후 다시 시도해주세요."}), 502
+    except Exception as exc:
+        return _ai_failure(exc, "정보를 가져오지 못했어요. 잠시 후 다시 시도해주세요.")
 
     return jsonify(
         {
@@ -108,8 +150,8 @@ def discussion_topics():
             ],
         )
         result = json.loads(completion.choices[0].message.content)
-    except Exception:
-        return jsonify({"error": "추천을 가져오지 못했어요. 다시 시도해주세요."}), 502
+    except Exception as exc:
+        return _ai_failure(exc, "추천을 가져오지 못했어요. 다시 시도해주세요.")
 
     return jsonify(
         {
